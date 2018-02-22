@@ -139,23 +139,42 @@ namespace TemplateEngine.Docx
 			}
 		}
 
-		public static void ReplaceNewLinesWithBreaks(XElement xElem)
-		{
-			if (xElem == null) return;
+	    public static void ReplaceNewLinesWithBreaks(XElement xElem)
+	    {
+	        if (xElem == null)
+	        {
+	            return;
+	        }
 
-			var textWithBreaks = xElem.Descendants(W.t).Where(t => t.Value.Contains("\r\n"));
-			foreach (var textWithBreak in textWithBreaks)
-			{
-				var text = textWithBreak.Value;
-				var split = text.Replace("\r\n", "\n").Split(new[] { "\n" }, StringSplitOptions.None);
-				textWithBreak.Value = string.Empty;
-				foreach (var s in split)
-				{
-					textWithBreak.Add(new XElement(W.t, s));
-					textWithBreak.Add(new XElement(W.br));
-				}
-				textWithBreak.Descendants(W.br).Last().Remove();
-			}
-		}
-	}
+	        var textWithBreaks = xElem.Descendants(W.t).Where(t => t.Value.Contains("\r\n"));
+
+	        var list = new List<XElement>();
+
+	        foreach (var textWithBreak in textWithBreaks)
+	        {
+	            var text = textWithBreak.Value;
+	            var split = text.Replace("\r\n", "\n").Split(new[] { "\n" }, StringSplitOptions.None);
+	            textWithBreak.Value = "REMOVE ME";
+
+	            foreach (var s in split)
+	            {
+	                list.Add(new XElement(
+	                    W.r,
+	                    new XElement(W.br),
+	                    new XElement(W.t, s)));
+	            }
+
+	            //textWithBreak.Descendants(W.br).Last().Remove();
+	        }
+
+	        xElem.Descendants(W.r).Where(x => x.Value == "REMOVE ME").Remove();
+
+	        var element = xElem.Descendants(W.p).FirstOrDefault();
+
+	        if (element != null && list.Any())
+	        {
+	            element.Add(list.ToArray());
+	        }
+	    }
+    }
 }
